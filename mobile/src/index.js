@@ -1,9 +1,9 @@
 import React, {Fragment} from 'react';
 
-import Login from '../pages/Login'
+import Routes from './routes';
 
 export default function App(){
   return(
-    <Login></Login>
+    <Routes/>
   );
 }
