@@ -1,9 +1,6 @@
 //necessário importar express no npm
 const express = require('express');
 
-//parsar a requisição que chega
-const bodyParser = require('body-parser');
-
 //mongoose é um simplificador de linguagem SQL para JS, precisa ser instalado previamente via package manager 
 const mongoose = require('mongoose');
 const routes = require('./routes');
@@ -14,8 +11,8 @@ const cors = require('cors');
 const server = express();
 
 server.use(cors());
-server.use(bodyParser.json());
-server.use(bodyParser.urlencoded({extended:true}));
+
+server.use(express.json());
 
 //conecta o banco, string de conexão de MongoDB Atlas
 mongoose.connect('mongodb+srv://ciscoproo0:Cisco141290@cluster0-zxsfz.mongodb.net/tindev?retryWrites=true&w=majority', {useNewUrlParser: true})
