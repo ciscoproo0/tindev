@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
+import io from 'socket.io-client';
 import {SafeAreaView,View,Image,Text,StyleSheet,TouchableOpacity} from 'react-native';
 
 import api from '../src/services/api';
@@ -7,10 +8,12 @@ import api from '../src/services/api';
 import logo from '../src/assets/logo.png';
 import like from '../src/assets/like.png';
 import dislike from '../src/assets/dislike.png';
+import itsamatch from '../src/assets/itsamatch.png';
 
 export default function Main({navigation}){
     const id = navigation.getParam('user')
     const [users, setUsers] = useState([]);
+    const [matchDev, setMatchDev] = useState(null);
 
 
     //chamada no backend para listar todos os usuários, conforme regra de negócio setada no backend
@@ -25,6 +28,18 @@ export default function Main({navigation}){
         }
     loadUsers();
     }, [id]);
+
+    //socket para comunicar com o backend e obter o match, passando ide do usuário através de query 
+    useEffect(() => {
+        const socket = io('http://192.168.100.4:3000', {
+            query: {user: id}
+        });
+
+        socket.on('match', dev =>{
+            setMatchDev(dev);
+        });
+    }, [id]);
+
 
     //chama api e inclui no array de like
     async function handleLike(){
@@ -63,6 +78,22 @@ export default function Main({navigation}){
             <TouchableOpacity onPress={handleLogout}>
                 <Image source={logo} style={styles.logo}/>
             </TouchableOpacity>
+            {
+                matchDev && (
+                    <View style={styles.matchContainer}>
+                        <Image source={itsamatch}/>
+                        <Image style={styles.matchAvatar} source={{uri:matchDev.avatar}}/>
+
+                        <Text style={styles.matchName}>{matchDev.name}</Text>
+                        <Text style={styles.matchBio}>{matchDev.bio}</Text>
+
+                        <TouchableOpacity onPress={()=> setMatchDev(null)}>
+                            <Text style={styles.closeMatch}>Fechar</Text>
+                        </TouchableOpacity>
+                    </View>
+                )
+            }            
+
             {/* //area do card de perfil */}
             <View style={styles.cardsContainer}>
                 { users.length === 0
@@ -96,6 +127,44 @@ export default function Main({navigation}){
 }
 
 const styles = StyleSheet.create({
+    matchContainer:{
+        //...StyleSheet.absoluteFillObject,
+        position:'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        justifyContent: 'center',
+        alignItems:'center'
+    },
+    matchAvatar:{
+        width:160,
+        height:160,
+        borderRadius: 80,
+        borderWidth: 10,
+        borderColor: '#FFF',
+        marginVertical: 45
+    },
+    matchName:{
+        fontSize:26,
+        fontWeight:'bold',
+        color:'#FFF'
+    },
+    matchBio:{
+        marginTop:10,
+        fontSize:16,
+        color:'rgba(255,255,255,0.8)',
+        textAlign:'center',
+        paddingHorizontal: 45
+    },
+    closeMatch:{
+        fontSize: 16,
+        color:'rgba(255,255,255,0.8)',
+        textAlign:'center',
+        marginTop: 30,
+        fontWeight:'bold'
+    },
     empty:{
         alignSelf:'center',
         color: '#999',
@@ -118,12 +187,13 @@ const styles = StyleSheet.create({
         maxHeight: 500,
     },
     card:{
-        borderWidth: 1,
+        backgroundColor: '#f5f5f5',
+        borderWidth: 3,
         borderColor:'#DDD',
-        borderRadius: 8,
-        margin: 30,
-        overflow:'hidden',
+        borderRadius: 10,
+        margin: 10,
         position:'absolute',
+        overflow:'hidden',
         top:0,
         left:0,
         right:0,
@@ -172,4 +242,4 @@ const styles = StyleSheet.create({
             height:2
         }
     }
-})
+});

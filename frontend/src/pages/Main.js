@@ -1,14 +1,18 @@
 import React, {useEffect, useState} from 'react';
+import io from 'socket.io-client';
 import {Link} from 'react-router-dom';
 import './Main.css'
 
 import logo from '../assets/logo.svg';
 import like from '../assets/like.svg';
 import dislike from '../assets/dislike.svg';
+import itsamatch from '../assets/itsamatch.png'
+
 import api from '../services/api';
 
 export default function Main({match}){
     const [users, setUsers] = useState([]);
+    const [matchDev, setMatchDev] = useState(null);
 
     //chamada no backend para listar todos os usuários, conforme regra de negócio setada no backend
     useEffect(() => {
@@ -21,6 +25,17 @@ export default function Main({match}){
             setUsers(response.data);
         }
     loadUsers();
+    }, [match.params.id]);
+
+    //socket para comunicar com o backend e obter o match, passando ide do usuário através de query 
+    useEffect(() => {
+        const socket = io('http://localhost:3000', {
+            query: {user: match.params.id}
+        });
+
+        socket.on('match', dev =>{
+            setMatchDev(dev);
+        });
     }, [match.params.id]);
 
     //chama api e inclui no array de like
@@ -80,6 +95,20 @@ export default function Main({match}){
                 ) : (
                     <div className="empty">Acabou =\</div>
                 ) }
+                {
+                    matchDev && (
+                        <div className="match-container">
+                            <img src={itsamatch} alt="It's a match"/>
+
+                            <img className="avatar" src={matchDev.avatar} alt=""/>
+                            <strong>{matchDev.name}</strong>
+                            <p>{matchDev.bio}</p>
+
+                            <button type="button" onClick={()=>setMatchDev(null)}>Fechar</button>
+                        </div>
+                    )
+
+                }
         </div>
    );
 }
